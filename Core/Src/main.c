@@ -163,6 +163,12 @@ int main(void)
   {
       log_printf(LOG_DBG, "NEXT_TestSupportedScanFormats failed %d\r\n", (int)res);
   }
+
+  res = NEXT_TestScanFormatInfo();
+  if (NBFailed(res))
+  {
+      log_printf(LOG_DBG, "NEXT_TestScanFormatInfo failed %d\r\n", (int)res);
+  }
   while (1)
   {
     /* USER CODE END WHILE */
