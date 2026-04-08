@@ -1,0 +1,134 @@
+# =========================
+
+# STM32CubeIDE
+
+# =========================
+
+# Build folders
+
+Debug/
+Release/
+build/
+cmake-build-*/
+out/
+
+# STM32CubeIDE metadata
+
+.project
+.cproject
+.settings/
+.metadata/
+.externalToolBuilders/
+
+# Eclipse CDT
+
+*.launch
+
+# =========================
+
+# STM32CubeMX
+
+# =========================
+
+# Generated files sometimes recreated
+
+*.mxproject
+*.ioc_backup
+
+# =========================
+
+# ARM / GCC build artifacts
+
+# =========================
+
+*.elf
+*.bin
+*.hex
+*.map
+*.lst
+*.srec
+*.d
+*.o
+*.su
+
+# GCC coverage / profiling
+
+*.gcda
+*.gcno
+*.gcov
+
+# =========================
+
+# Linker / debug files
+
+# =========================
+
+*.log
+*.stackdump
+
+# =========================
+
+# VSCode
+
+# =========================
+
+.vscode/
+.history/
+
+# =========================
+
+# OS Files
+
+# =========================
+
+# Windows
+
+Thumbs.db
+Desktop.ini
+
+# macOS
+
+.DS_Store
+
+# Linux
+
+*~
+
+# =========================
+
+# Temporary files
+
+# =========================
+
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# =========================
+
+# Optional: CMSIS packs
+
+# =========================
+
+*.pack
+*.pdsc
+
+# =========================
+
+# ST-Link / Debug
+
+# =========================
+
+*.stlink
+*.stldr
+
+# =========================
+
+# Keep important project files
+
+# =========================
+
+!.ioc
+!STM32*.ld
+!*.ld
