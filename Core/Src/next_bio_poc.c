@@ -11,7 +11,7 @@ NBResult NEXT_TestFirmwareVersion(void)
     hDevice = NEXT_DeviceGetHandle();
     if (hDevice == NULL)
     {
-        return NB_ERROR_INVALID_STATE;
+        return NB_ERROR_INVALID_OPERATION;
     }
 
     memset(&version, 0, sizeof(version));
@@ -43,7 +43,7 @@ NBResult NEXT_TestSupportedScanFormats(void)
     hDevice = NEXT_DeviceGetHandle();
     if (hDevice == NULL)
     {
-        return NB_ERROR_INVALID_STATE;
+        return NB_ERROR_INVALID_OPERATION;
     }
 
     memset(formats, 0, sizeof(formats));
