@@ -147,6 +147,8 @@ int main(void)
   log_printf(LOG_ALW, "NEXT POC\r\n");
 
   NEXT_TestFirmwareVersion();
+
+  NEXT_TestSupportedScanFormats();
   while (1)
   {
     /* USER CODE END WHILE */

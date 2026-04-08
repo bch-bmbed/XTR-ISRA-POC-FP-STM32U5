@@ -15,6 +15,7 @@
 extern SPI_HandleTypeDef hspi1;
 
 NBResult NEXT_GetDeviceIO(NBDeviceIO *io);
+NBResult NEXT_TestSupportedScanFormats(void);
 
 void NEXT_ResetLow(void);
 void NEXT_ResetHigh(void);
