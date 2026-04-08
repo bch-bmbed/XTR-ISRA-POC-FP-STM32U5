@@ -5,8 +5,8 @@
  *      Author: benjamin.chalant
  */
 
-#ifndef INC_NEXT_BIO_PORT_H_
-#define INC_NEXT_BIO_PORT_H_
+#ifndef NEXT_BIO_PORT_H
+#define NEXT_BIO_PORT_H
 
 #include "main.h"
 #include "NBDevices.h"
@@ -14,13 +14,15 @@
 
 extern SPI_HandleTypeDef hspi1;
 
+/* Port / low-level IO */
 NBResult NEXT_GetDeviceIO(NBDeviceIO *io);
-NBResult NEXT_TestSupportedScanFormats(void);
 
 void NEXT_ResetLow(void);
 void NEXT_ResetHigh(void);
-GPIO_PinState NEXT_AwakeRead(void);
 void NEXT_Select(void);
 void NEXT_Deselect(void);
 
-#endif /* INC_NEXT_BIO_PORT_H_ */
+GPIO_PinState NEXT_AwakeRead(void);
+GPIO_PinState NEXT_DataReadyRead(void);
+
+#endif /* NEXT_BIO_PORT_H */

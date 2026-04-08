@@ -1,75 +1,75 @@
-/*
- * next_bio_poc.c
- *
- *  Created on: 8 avr. 2026
- *      Author: benjamin.chalant
- */
-
-#include "next_bio_port.h"
-#include <stdio.h>
+#include "next_bio_poc.h"
 #include "logger_xtr.h"
-
-static HNBDevice hDevice = NULL;
+#include <string.h>
 
 NBResult NEXT_TestFirmwareVersion(void)
 {
-    NBDeviceIO io;
-    NBVersion version;
     NBResult res;
+    NBVersion version;
+    HNBDevice hDevice;
 
-    log_printf(LOG_DBG, "AWAKE before reset=%d\r\n", NEXT_AwakeRead());
-
-    NEXT_Deselect();
-
-    NEXT_ResetHigh();
-    HAL_Delay(20);
-
-    NEXT_ResetLow();
-    HAL_Delay(20);
-    NEXT_ResetHigh();
-
-    HAL_Delay(500);
-
-    log_printf(LOG_DBG, "AWAKE after reset=%d\r\n", NEXT_AwakeRead());
-
-    res = NBDevicesInitializeA(NULL, NULL, NULL, 0);
-    if (NBFailed(res))
+    hDevice = NEXT_DeviceGetHandle();
+    if (hDevice == NULL)
     {
-        log_printf(LOG_DBG, "NBDevicesInitializeA failed %d\r\n", res);
-        return res;
+        return NB_ERROR_INVALID_STATE;
     }
 
-    NEXT_GetDeviceIO(&io);
+    memset(&version, 0, sizeof(version));
 
-    res = NBDeviceConnectToSpiRaw(
-            &io,
-            0,
-            &hDevice);
-
+    res = NBDeviceGetFirmwareVersion(hDevice, &version);
     if (NBFailed(res))
     {
-    	log_printf(LOG_DBG, "Connect failed %d\r\n",res);
-        return res;
-    }
-
-    res =
-        NBDeviceGetFirmwareVersion(
-            hDevice,
-            &version);
-
-    if (NBFailed(res))
-    {
-    	log_printf(LOG_DBG, "FW read failed %d\r\n",res);
+        log_printf(LOG_DBG, "NBDeviceGetFirmwareVersion failed %d\r\n", (int)res);
         return res;
     }
 
     log_printf(LOG_DBG, "FW: %d.%d.%d.%d\r\n",
-        version.iMajor,
-        version.iMinor,
-        version.iBuild,
-        version.iRevision);
+               version.iMajor,
+               version.iMinor,
+               version.iBuild,
+               version.iRevision);
 
-    NBDeviceDestroy(hDevice);
+    return NB_OK;
+}
+
+NBResult NEXT_TestSupportedScanFormats(void)
+{
+    NBResult res;
+    HNBDevice hDevice;
+    NBDeviceScanFormat formats[16];
+    NBUInt count;
+    NBUInt i;
+
+    hDevice = NEXT_DeviceGetHandle();
+    if (hDevice == NULL)
+    {
+        return NB_ERROR_INVALID_STATE;
+    }
+
+    memset(formats, 0, sizeof(formats));
+    count = 0U;
+
+    res = NBDeviceGetSupportedScanFormats(
+        hDevice,
+        formats,
+        (NBUInt)(sizeof(formats) / sizeof(formats[0])),
+        &count);
+
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG, "NBDeviceGetSupportedScanFormats failed %d\r\n", (int)res);
+        return res;
+    }
+
+    log_printf(LOG_DBG, "Supported scan formats count=%u\r\n", (unsigned int)count);
+
+    for (i = 0U; i < count; i++)
+    {
+        log_printf(LOG_DBG,
+                   "fmt[%u] = %u\r\n",
+                   (unsigned int)i,
+                   (unsigned int)formats[i]);
+    }
 
     return NB_OK;
 }

@@ -23,6 +23,8 @@
 /* USER CODE BEGIN Includes */
 #include "logger_xtr.h"
 #include "NBErrors.h"
+#include "next_bio_device.h"
+#include "next_bio_poc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -140,15 +142,27 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-  DWT->CYCCNT = 0;
+  NBResult res;
+  log_printf(LOG_DBG, "NEXT POC\r\n");
 
-  log_printf(LOG_ALW, "NEXT POC\r\n");
+  res = NEXT_DeviceInit();
+  if (NBFailed(res))
+  {
+      log_printf(LOG_DBG, "NEXT_DeviceInit failed %d\r\n", (int)res);
+      Error_Handler();
+  }
 
-  NEXT_TestFirmwareVersion();
+  res = NEXT_TestFirmwareVersion();
+  if (NBFailed(res))
+  {
+      log_printf(LOG_DBG, "NEXT_TestFirmwareVersion failed %d\r\n", (int)res);
+  }
 
-  NEXT_TestSupportedScanFormats();
+  res = NEXT_TestSupportedScanFormats();
+  if (NBFailed(res))
+  {
+      log_printf(LOG_DBG, "NEXT_TestSupportedScanFormats failed %d\r\n", (int)res);
+  }
   while (1)
   {
     /* USER CODE END WHILE */
