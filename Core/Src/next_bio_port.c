@@ -69,6 +69,17 @@ static NBResult NB_API NEXT_DelayMicroseconds(void *pContext, NBUInt32 us)
 
     (void)pContext;
 
+    if ((DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk) == 0U)
+    {
+        /* Fallback grossier mais sûr */
+        uint32_t startMs = HAL_GetTick();
+        uint32_t waitMs = (us + 999U) / 1000U;
+        while ((HAL_GetTick() - startMs) < waitMs)
+        {
+        }
+        return NB_OK;
+    }
+
     start = DWT->CYCCNT;
     ticks = us * (HAL_RCC_GetHCLKFreq() / 1000000U);
 

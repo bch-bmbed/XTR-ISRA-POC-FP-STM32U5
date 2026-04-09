@@ -138,6 +138,11 @@ int main(void)
   log_init(&huart1);
   log_set_level(LOG_DBG);
   log_printf(LOG_ALW, "MAIN: Init success\r\n");
+
+  /* Enable DWT CYCCNT for microsecond delays used by NEXT_DelayMicroseconds */
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CYCCNT = 0;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
   /* USER CODE END 2 */
 
   /* Infinite loop */
