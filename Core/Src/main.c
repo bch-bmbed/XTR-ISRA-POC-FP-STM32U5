@@ -169,6 +169,13 @@ int main(void)
   {
       log_printf(LOG_DBG, "NEXT_TestScanFormatInfo failed %d\r\n", (int)res);
   }
+
+  res = NEXT_TestCaptureImage();
+  if (NBFailed(res))
+  {
+      log_printf(LOG_DBG, "NEXT_TestCaptureImage failed %d\r\n", (int)res);
+  }
+
   while (1)
   {
     /* USER CODE END WHILE */

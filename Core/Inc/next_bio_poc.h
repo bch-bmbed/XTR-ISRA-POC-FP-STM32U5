@@ -13,5 +13,6 @@
 NBResult NEXT_TestFirmwareVersion(void);
 NBResult NEXT_TestSupportedScanFormats(void);
 NBResult NEXT_TestScanFormatInfo(void);
+NBResult NEXT_TestCaptureImage(void);
 
 #endif /* NEXT_BIO_TESTS_H */

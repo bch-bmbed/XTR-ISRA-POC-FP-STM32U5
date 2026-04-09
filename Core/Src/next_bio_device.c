@@ -1,13 +1,14 @@
 #include "next_bio_device.h"
 #include "logger_xtr.h"
+#include <string.h>
 
 static HNBDevice g_hDevice = NULL;
+static NBDeviceIO g_sDeviceIO;
 static NBBool g_nbInitialized = NBFalse;
 
 static NBResult NEXT_DeviceOpen(HNBDevice *phDevice)
 {
     NBResult res;
-    NBDeviceIO io;
 
     if (phDevice == NULL)
     {
@@ -22,28 +23,32 @@ static NBResult NEXT_DeviceOpen(HNBDevice *phDevice)
 
     NEXT_ResetHigh();
     HAL_Delay(20);
-
     NEXT_ResetLow();
     HAL_Delay(20);
-
     NEXT_ResetHigh();
     HAL_Delay(500);
 
     log_printf(LOG_DBG, "AWAKE after reset=%d\r\n", (int)NEXT_AwakeRead());
 
-    res = NEXT_GetDeviceIO(&io);
+    memset(&g_sDeviceIO, 0, sizeof(g_sDeviceIO));
+
+    res = NEXT_GetDeviceIO(&g_sDeviceIO);
     if (NBFailed(res))
     {
         log_printf(LOG_DBG, "NEXT_GetDeviceIO failed %d\r\n", (int)res);
         return res;
     }
 
-    res = NBDeviceConnectToSpiRaw(&io, 0U, phDevice);
+    log_printf(LOG_DBG, "About to connect raw...\r\n");
+
+    res = NBDeviceConnectToSpiRaw(&g_sDeviceIO, 0U, phDevice);
     if (NBFailed(res))
     {
         log_printf(LOG_DBG, "NBDeviceConnectToSpiRaw failed %d\r\n", (int)res);
         return res;
     }
+
+    log_printf(LOG_DBG, "Raw connect OK\r\n");
 
     return NB_OK;
 }
@@ -75,7 +80,6 @@ NBResult NEXT_DeviceInit(void)
     }
 
     log_printf(LOG_DBG, "NEXT_DeviceInit OK\r\n");
-
     return NB_OK;
 }
 
