@@ -1,6 +1,7 @@
 #include "next_bio_poc.h"
 #include "logger_xtr.h"
 #include <string.h>
+#include "stdlib.h"
 
 NBResult NEXT_TestFirmwareVersion(void)
 {
@@ -130,6 +131,60 @@ NBResult NEXT_TestScanFormatInfo(void)
                    (unsigned int)info.uiVerticalResolution,
                    (unsigned long)(info.uiWidth * info.uiHeight));
     }
+
+    return NB_OK;
+}
+
+NBResult NEXT_TestCalibration(void)
+{
+    NBResult res;
+    HNBDevice hDevice;
+    static NBByte calibrationBuffer[NBDEVICE_FAP20_CALIBRATION_BUFFER_SIZE];
+    NBSizeType calibrationSize = sizeof(calibrationBuffer);
+
+    hDevice = NEXT_DeviceGetHandle();
+    if (hDevice == NULL)
+    {
+        return NB_ERROR_INVALID_OPERATION;
+    }
+
+    memset(calibrationBuffer, 0, sizeof(calibrationBuffer));
+
+    log_printf(LOG_DBG, "Calibration start\r\n");
+    log_printf(LOG_DBG, "Sensor must be clean and empty\r\n");
+
+    res = NBDeviceGenerateCalibrationDataInplace(
+        hDevice,
+        calibrationBuffer,
+        &calibrationSize);
+
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG,
+                   "NBDeviceGenerateCalibrationDataInplace failed %d\r\n",
+                   (int)res);
+        return res;
+    }
+
+    log_printf(LOG_DBG,
+               "Calibration generated inplace, size=%lu\r\n",
+               (unsigned long)calibrationSize);
+
+    res = NBDeviceSetBlobParameter(
+        hDevice,
+        NB_DEVICE_BLOB_PARAMETER_CALIBRATION_DATA,
+        calibrationBuffer,
+        calibrationSize);
+
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG,
+                   "NBDeviceSetBlobParameter(CALIBRATION_DATA) failed %d\r\n",
+                   (int)res);
+        return res;
+    }
+
+    log_printf(LOG_DBG, "Calibration applied\r\n");
 
     return NB_OK;
 }

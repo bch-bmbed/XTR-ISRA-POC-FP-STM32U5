@@ -157,11 +157,15 @@ int main(void)
       Error_Handler();
   }
 
+  log_printf(LOG_DBG,"===================================================\r\n");
+
   res = NEXT_TestFirmwareVersion();
   if (NBFailed(res))
   {
       log_printf(LOG_DBG, "NEXT_TestFirmwareVersion failed %d\r\n", (int)res);
   }
+
+  log_printf(LOG_DBG,"===================================================\r\n");
 
   res = NEXT_TestSupportedScanFormats();
   if (NBFailed(res))
@@ -169,11 +173,23 @@ int main(void)
       log_printf(LOG_DBG, "NEXT_TestSupportedScanFormats failed %d\r\n", (int)res);
   }
 
+  log_printf(LOG_DBG,"===================================================\r\n");
+
   res = NEXT_TestScanFormatInfo();
   if (NBFailed(res))
   {
       log_printf(LOG_DBG, "NEXT_TestScanFormatInfo failed %d\r\n", (int)res);
   }
+
+  log_printf(LOG_DBG,"===================================================\r\n");
+
+  res = NEXT_TestCalibration();
+  if (NBFailed(res))
+  {
+      log_printf(LOG_DBG, "NEXT_TestCalibration failed %d\r\n", (int)res);
+  }
+
+  log_printf(LOG_DBG,"===================================================\r\n");
 
   res = NEXT_TestCaptureImage();
   if (NBFailed(res))
