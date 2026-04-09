@@ -190,12 +190,16 @@ int main(void)
   }
 
   log_printf(LOG_DBG,"===================================================\r\n");
+  log_printf(LOG_DBG,"BEGIN FINGER CAPTURE\r\n");
+  HAL_Delay(500);
 
-  res = NEXT_TestCaptureImage();
+  res = NEXT_TestCaptureImageToPgm();
   if (NBFailed(res))
   {
       log_printf(LOG_DBG, "NEXT_TestCaptureImage failed %d\r\n", (int)res);
   }
+
+  log_printf(LOG_DBG,"===================================================\r\n");
 
   while (1)
   {

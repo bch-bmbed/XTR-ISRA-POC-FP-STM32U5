@@ -141,6 +141,7 @@ NBResult NEXT_TestCalibration(void)
     HNBDevice hDevice;
     static NBByte calibrationBuffer[NBDEVICE_FAP20_CALIBRATION_BUFFER_SIZE];
     NBSizeType calibrationSize = sizeof(calibrationBuffer);
+    NBDeviceCalibrationDataAddress calibrationAddress;
 
     hDevice = NEXT_DeviceGetHandle();
     if (hDevice == NULL)
@@ -170,22 +171,24 @@ NBResult NEXT_TestCalibration(void)
                "Calibration generated inplace, size=%lu\r\n",
                (unsigned long)calibrationSize);
 
+    calibrationAddress.pCalibrationData = calibrationBuffer;
+    calibrationAddress.stCalibrationDataSize = calibrationSize;
+
     res = NBDeviceSetBlobParameter(
         hDevice,
-        NB_DEVICE_BLOB_PARAMETER_CALIBRATION_DATA,
-        calibrationBuffer,
-        calibrationSize);
+        NB_DEVICE_BLOB_PARAMETER_CALIBRATION_DATA_ADDRESS,
+        (const NBByte *)&calibrationAddress,
+        sizeof(calibrationAddress));
 
     if (NBFailed(res))
     {
         log_printf(LOG_DBG,
-                   "NBDeviceSetBlobParameter(CALIBRATION_DATA) failed %d\r\n",
+                   "NBDeviceSetBlobParameter(CALIBRATION_DATA_ADDRESS) failed %d\r\n",
                    (int)res);
         return res;
     }
 
     log_printf(LOG_DBG, "Calibration applied\r\n");
-
     return NB_OK;
 }
 
@@ -272,6 +275,82 @@ NBResult NEXT_TestCaptureImage(void)
 
     /* Optionnel : dump brut sur UART en hex est trop lourd.
        Mieux : sauvegarde plus tard en BMP/PGM côté host. */
+
+    free(pImage);
+    return NB_OK;
+}
+
+NBResult NEXT_TestCaptureImageToPgm(void)
+{
+    NBResult res;
+    HNBDevice hDevice;
+    NBDeviceScanFormatInfo info;
+    NBDeviceScanStatus status;
+    NBByte *pImage = NULL;
+    const NBDeviceScanFormat scanFormat = (NBDeviceScanFormat)10;
+    NBSizeType imageSize;
+    NBSizeType i;
+
+    hDevice = NEXT_DeviceGetHandle();
+    if (hDevice == NULL)
+    {
+        return NB_ERROR_INVALID_OPERATION;
+    }
+
+    memset(&info, 0, sizeof(info));
+    status = 0;
+
+    res = NBDeviceGetScanFormatInfo(hDevice, scanFormat, &info);
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG, "NBDeviceGetScanFormatInfo failed %d\r\n", (int)res);
+        return res;
+    }
+
+    imageSize = info.uiWidth * info.uiHeight;
+
+    pImage = (NBByte *)malloc(imageSize);
+    if (pImage == NULL)
+    {
+        return NB_ERROR_OUT_OF_MEMORY;
+    }
+
+    log_printf(LOG_DBG, "Place finger in 3 seconds...\r\n");
+    HAL_Delay(3000);
+
+    res = NBDeviceScan(
+        hDevice,
+        scanFormat,
+        pImage,
+        imageSize,
+        0,
+        &status);
+
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG, "Scan failed %d\r\n", (int)res);
+        free(pImage);
+        return res;
+    }
+
+    log_printf(LOG_DBG, "PGM BEGIN\r\n");
+
+    /* Header PGM ASCII */
+    log_printf(LOG_DBG, "P2\r\n");
+    log_printf(LOG_DBG, "%u %u\r\n", info.uiWidth, info.uiHeight);
+    log_printf(LOG_DBG, "255\r\n");
+
+    for (i = 0; i < imageSize; i++)
+    {
+        log_printf(LOG_DBG, "%u ", pImage[i]);
+
+        if ((i % info.uiWidth) == 0)
+        {
+            log_printf(LOG_DBG, "\r\n");
+        }
+    }
+
+    log_printf(LOG_DBG, "\r\nPGM END\r\n");
 
     free(pImage);
     return NB_OK;

@@ -15,5 +15,6 @@ NBResult NEXT_TestSupportedScanFormats(void);
 NBResult NEXT_TestScanFormatInfo(void);
 NBResult NEXT_TestCalibration(void);
 NBResult NEXT_TestCaptureImage(void);
+NBResult NEXT_TestCaptureImageToPgm(void);
 
 #endif /* NEXT_BIO_TESTS_H */
