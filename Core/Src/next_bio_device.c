@@ -32,7 +32,9 @@ static NBResult NEXT_DeviceOpen(HNBDevice *phDevice)
 
     memset(&g_sDeviceIO, 0, sizeof(g_sDeviceIO));
 
+    log_printf(LOG_DBG, "Before NEXT_GetDeviceIO\r\n");
     res = NEXT_GetDeviceIO(&g_sDeviceIO);
+    log_printf(LOG_DBG, "After NEXT_GetDeviceIO: %d\r\n", (int)res);
     if (NBFailed(res))
     {
         log_printf(LOG_DBG, "NEXT_GetDeviceIO failed %d\r\n", (int)res);
@@ -40,7 +42,6 @@ static NBResult NEXT_DeviceOpen(HNBDevice *phDevice)
     }
 
     log_printf(LOG_DBG, "About to connect raw...\r\n");
-
     res = NBDeviceConnectToSpiRaw(&g_sDeviceIO, 0U, phDevice);
     if (NBFailed(res))
     {
@@ -49,7 +50,6 @@ static NBResult NEXT_DeviceOpen(HNBDevice *phDevice)
     }
 
     log_printf(LOG_DBG, "Raw connect OK\r\n");
-
     return NB_OK;
 }
 
