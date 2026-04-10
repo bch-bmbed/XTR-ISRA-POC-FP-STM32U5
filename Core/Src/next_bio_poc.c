@@ -462,3 +462,49 @@ NBResult NEXT_TestExtractTemplate(void)
     free(pTemplate);
     return NB_OK;
 }
+
+/*********************************************************************
+ ************************** HELPERS GUI ******************************
+ **********************************************************************/
+
+void NEXT_UiBanner(const char *msg)
+{
+    log_printf(LOG_DBG, "===================================================\r\n");
+    log_printf(LOG_DBG, "%s\r\n", msg);
+    log_printf(LOG_DBG, "===================================================\r\n");
+}
+
+void NEXT_UiCountdown(const char *msg, uint32_t seconds)
+{
+    uint32_t i;
+
+    if (msg != NULL)
+    {
+        log_printf(LOG_DBG, "%s\r\n", msg);
+    }
+
+    for (i = seconds; i > 0U; i--)
+    {
+        log_printf(LOG_DBG, "Capture dans %lu...\r\n", (unsigned long)i);
+        HAL_Delay(1000);
+    }
+
+    log_printf(LOG_DBG, "Capture en cours...\r\n");
+}
+
+void NEXT_UiShowVerifyResult(int score, int bioStatus)
+{
+    NEXT_UiBanner("RESULTAT VERIFY");
+
+    log_printf(LOG_DBG, "bioStatus=%d\r\n", bioStatus);
+    log_printf(LOG_DBG, "score=%d\r\n", score);
+
+    if (bioStatus == 1)
+    {
+        log_printf(LOG_DBG, "MATCH OK\r\n");
+    }
+    else
+    {
+        log_printf(LOG_DBG, "MATCH NOK\r\n");
+    }
+}

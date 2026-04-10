@@ -19,4 +19,10 @@ NBResult NEXT_TestCaptureImageToPgm(void);
 
 NBResult NEXT_TestExtractTemplate(void);
 
+// HELPERS GUI
+
+void NEXT_UiBanner(const char *msg);
+void NEXT_UiCountdown(const char *msg, uint32_t seconds);
+void NEXT_UiShowVerifyResult(int score, int bioStatus);
+
 #endif /* NEXT_BIO_TESTS_H */

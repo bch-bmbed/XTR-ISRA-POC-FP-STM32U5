@@ -7,6 +7,7 @@
 
 #include "next_bio_biometrics.h"
 #include "next_bio_device.h"
+#include "next_bio_poc.h"
 #include "logger_xtr.h"
 #include <string.h>
 #include <stdlib.h>
@@ -59,7 +60,7 @@ NBResult NEXT_ExtractTemplate(NEXT_TemplateBuffer *pOut)
     NBResult res;
     HNBBiometricsContext hContext;
     NBBiometricsTemplateType templateType = NBBiometricsTemplateTypeIso;
-    NBBiometricsFingerPosition fingerPosition = NBBiometricsFingerPositionRightThumb;
+    NBBiometricsFingerPosition fingerPosition = NBBiometricsFingerPositionUnknown;
     NBBiometricsScanParams scanParams;
     NBBiometricsStatus bioStatus = NBBiometricsStatusNone;
     NBSizeType maxTemplateSize = 0;
@@ -102,8 +103,7 @@ NBResult NEXT_ExtractTemplate(NEXT_TemplateBuffer *pOut)
         return NB_ERROR_ARGUMENT_OUT_OF_RANGE;
     }
 
-    log_printf(LOG_DBG, "Place finger now and keep it steady...\r\n");
-    HAL_Delay(3000);
+    NEXT_UiCountdown("Placez le doigt et gardez-le immobile", 3);
 
     res = NBBiometricsContextExtractFromScan(
         hContext,
@@ -150,7 +150,7 @@ NBResult NEXT_TestVerifyTwoScans(void)
     NEXT_TemplateBuffer t2;
     NBBiometricsStatus bioStatus = NBBiometricsStatusNone;
     NBBiometricsVerifyResultDetails verifyResult;
-    NBInt securityLevel = 3; /* point de départ raisonnable pour POC */
+    NBInt securityLevel = 3;
     NBUInt uiFlags = 0U;
 
     memset(&verifyResult, 0, sizeof(verifyResult));
@@ -161,7 +161,7 @@ NBResult NEXT_TestVerifyTwoScans(void)
         return NB_ERROR_INVALID_OPERATION;
     }
 
-    log_printf(LOG_DBG, "=== TEMPLATE 1 ===\r\n");
+    NEXT_UiBanner("ACQUISITION TEMPLATE 1");
     res = NEXT_ExtractTemplate(&t1);
     if (NBFailed(res) || (t1.valid != NBTrue))
     {
@@ -169,13 +169,27 @@ NBResult NEXT_TestVerifyTwoScans(void)
         return res;
     }
 
-    log_printf(LOG_DBG, "=== TEMPLATE 2 ===\r\n");
+    log_printf(LOG_DBG,
+               "Template 1 OK - size=%lu quality=%d\r\n",
+               (unsigned long)t1.size,
+               (int)t1.quality);
+
+    NEXT_UiCountdown("Retirez le doigt", 2);
+
+    NEXT_UiBanner("ACQUISITION TEMPLATE 2");
     res = NEXT_ExtractTemplate(&t2);
     if (NBFailed(res) || (t2.valid != NBTrue))
     {
         log_printf(LOG_DBG, "Template 2 extraction failed %d\r\n", (int)res);
         return res;
     }
+
+    log_printf(LOG_DBG,
+               "Template 2 OK - size=%lu quality=%d\r\n",
+               (unsigned long)t2.size,
+               (int)t2.quality);
+
+    NEXT_UiBanner("VERIFY EN COURS");
 
     res = NBBiometricsContextVerifyFromTemplate(
         hContext,
@@ -193,6 +207,8 @@ NBResult NEXT_TestVerifyTwoScans(void)
                (int)res,
                (int)bioStatus,
                (int)verifyResult.iScore);
+
+    NEXT_UiShowVerifyResult((int)verifyResult.iScore, (int)bioStatus);
 
     return res;
 }
