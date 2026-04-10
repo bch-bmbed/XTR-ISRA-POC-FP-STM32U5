@@ -1,0 +1,7 @@
+../Core/Src/util.c:25:15:get_time_ms	1
+../Core/Src/util.c:39:6:nibble2char	3
+../Core/Src/util.c:55:5:is_hex_digit	7
+../Core/Src/util.c:72:15:char2nibble	7
+../Core/Src/util.c:90:5:convert_asc_to_bin	4
+../Core/Src/util.c:127:7:convert_bin_to_asc	3
+../Core/Src/util.c:216:16:compute_crc16	5

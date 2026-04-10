@@ -1,0 +1,6 @@
+../Core/Src/next_bio_device.c:9:17:NEXT_DeviceOpen	4
+../Core/Src/next_bio_device.c:56:10:NEXT_DeviceInit	4
+../Core/Src/next_bio_device.c:86:6:NEXT_DeviceDeinit	3
+../Core/Src/next_bio_device.c:101:11:NEXT_DeviceGetHandle	1
+../Core/Src/next_bio_device.c:106:8:NEXT_DeviceIsReady	1
+../Core/Src/next_bio_device.c:111:10:NEXT_ApplyCalibrationFromFlash	4

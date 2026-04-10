@@ -1,0 +1,14 @@
+../Core/Src/next_bio_port.c:17:24:NEXT_GetTimestamp	2
+../Core/Src/next_bio_port.c:30:24:NEXT_AwakeGetValue	3
+../Core/Src/next_bio_port.c:48:24:NEXT_ResetSetValue	2
+../Core/Src/next_bio_port.c:65:24:NEXT_DelayMicroseconds	4
+../Core/Src/next_bio_port.c:93:24:NEXT_SendReceiveData	5
+../Core/Src/next_bio_port.c:123:17:NEXT_Reverse32	1
+../Core/Src/next_bio_port.c:135:24:NEXT_DoCrc32	6
+../Core/Src/next_bio_port.c:178:10:NEXT_GetDeviceIO	2
+../Core/Src/next_bio_port.c:202:6:NEXT_ResetLow	1
+../Core/Src/next_bio_port.c:207:6:NEXT_ResetHigh	1
+../Core/Src/next_bio_port.c:212:6:NEXT_Select	1
+../Core/Src/next_bio_port.c:217:6:NEXT_Deselect	1
+../Core/Src/next_bio_port.c:222:15:NEXT_AwakeRead	1
+../Core/Src/next_bio_port.c:227:15:NEXT_DataReadyRead	1

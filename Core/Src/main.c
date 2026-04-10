@@ -26,6 +26,9 @@
 #include "next_bio_device.h"
 #include "next_bio_poc.h"
 #include "next_bio_biometrics.h"
+
+#include "id3Errors.h"
+#include "next_id3.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,6 +40,10 @@
 /* USER CODE BEGIN PD */
 #define NEXT_DEBUG_PGM_
 #define NEXT_DEBUG_TEST_
+
+#define NEXT_BIOMETRICS_TEST_
+
+#define NEXT_ID3_TEST
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -210,6 +217,7 @@ int main(void)
   }
 #endif
 
+#ifdef NEXT_BIOMETRICS_TEST
   log_printf(LOG_DBG,"===================================================\r\n");
 
   res = NEXT_BiometricsInit();
@@ -227,8 +235,16 @@ int main(void)
       }
       log_printf(LOG_DBG, "===================================================\r\n");
   }
+#endif
 
-  log_printf(LOG_DBG,"===================================================\r\n");
+#ifdef NEXT_ID3_TEST
+  log_printf(LOG_DBG, "===================================================\r\n");
+  if (NEXT_ID3_SmokeTest() != ID3_SUCCESS)
+  {
+      log_printf(LOG_DBG, "NEXT_ID3_SmokeTest failed\r\n");
+  }
+  log_printf(LOG_DBG, "===================================================\r\n");
+#endif
 
   while (1)
   {

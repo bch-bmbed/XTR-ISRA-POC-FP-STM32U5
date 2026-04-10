@@ -1,0 +1,5 @@
+../Core/Src/next_bio_biometrics.c:17:10:NEXT_BiometricsInit	4
+../Core/Src/next_bio_biometrics.c:44:6:NEXT_BiometricsDeinit	2
+../Core/Src/next_bio_biometrics.c:53:22:NEXT_BiometricsGetContext	1
+../Core/Src/next_bio_biometrics.c:58:10:NEXT_ExtractTemplate	8
+../Core/Src/next_bio_biometrics.c:145:10:NEXT_TestVerifyTwoScans	6

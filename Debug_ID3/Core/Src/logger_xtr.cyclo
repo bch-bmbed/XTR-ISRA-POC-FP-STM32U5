@@ -1,0 +1,10 @@
+../Core/Src/logger_xtr.c:33:6:log_init	1
+../Core/Src/logger_xtr.c:48:6:log_transmit	1
+../Core/Src/logger_xtr.c:60:6:log_set_level	1
+../Core/Src/logger_xtr.c:70:5:log_get_level	1
+../Core/Src/logger_xtr.c:84:5:log_check_level	3
+../Core/Src/logger_xtr.c:97:6:log_printf	2
+../Core/Src/logger_xtr.c:118:6:log_dump_hex_array	11
+../Core/Src/logger_xtr.c:160:6:log_dump_hex	3
+../Core/Src/logger_xtr.c:174:6:log_disable	1
+../Core/Src/logger_xtr.c:184:6:log_enable	1

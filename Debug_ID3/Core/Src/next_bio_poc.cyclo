@@ -1,0 +1,10 @@
+../Core/Src/next_bio_poc.c:7:10:NEXT_TestFirmwareVersion	3
+../Core/Src/next_bio_poc.c:37:10:NEXT_TestSupportedScanFormats	4
+../Core/Src/next_bio_poc.c:79:10:NEXT_TestScanFormatInfo	5
+../Core/Src/next_bio_poc.c:139:10:NEXT_TestCalibration	5
+../Core/Src/next_bio_poc.c:208:10:NEXT_TestCaptureImage	6
+../Core/Src/next_bio_poc.c:296:10:NEXT_TestCaptureImageToPgm	7
+../Core/Src/next_bio_poc.c:372:10:NEXT_TestExtractTemplate	6
+../Core/Src/next_bio_poc.c:470:6:NEXT_UiBanner	1
+../Core/Src/next_bio_poc.c:477:6:NEXT_UiCountdown	3
+../Core/Src/next_bio_poc.c:495:6:NEXT_UiShowVerifyResult	2
