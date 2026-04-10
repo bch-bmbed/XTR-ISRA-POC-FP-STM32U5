@@ -25,6 +25,7 @@
 #include "NBErrors.h"
 #include "next_bio_device.h"
 #include "next_bio_poc.h"
+#include "next_bio_biometrics.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -34,7 +35,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define NEXT_DEBUG_PGM_
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -195,6 +196,7 @@ int main(void)
       log_printf(LOG_DBG, "NEXT_TestScanFormatInfo failed %d\r\n", (int)res);
   }
 
+#if NEXT_DEBUG_PGM
   log_printf(LOG_DBG,"===================================================\r\n");
   log_printf(LOG_DBG,"BEGIN FINGER CAPTURE\r\n");
   HAL_Delay(500);
@@ -203,6 +205,23 @@ int main(void)
   if (NBFailed(res))
   {
       log_printf(LOG_DBG, "NEXT_TestCaptureImage failed %d\r\n", (int)res);
+  }
+#endif
+
+  log_printf(LOG_DBG,"===================================================\r\n");
+
+  res = NEXT_BiometricsInit();
+  if (NBFailed(res))
+  {
+      log_printf(LOG_DBG, "NEXT_BiometricsInit failed %d\r\n", (int)res);
+  }
+  else
+  {
+      res = NEXT_TestExtractTemplate();
+      if (NBFailed(res))
+      {
+          log_printf(LOG_DBG, "NEXT_TestExtractTemplate failed %d\r\n", (int)res);
+      }
   }
 
   log_printf(LOG_DBG,"===================================================\r\n");

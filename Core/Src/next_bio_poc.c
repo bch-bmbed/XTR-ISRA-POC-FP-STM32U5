@@ -1,4 +1,5 @@
 #include "next_bio_poc.h"
+#include "next_bio_biometrics.h"
 #include "logger_xtr.h"
 #include <string.h>
 #include "stdlib.h"
@@ -365,5 +366,97 @@ NBResult NEXT_TestCaptureImageToPgm(void)
     log_printf(LOG_DBG, "\r\nPGM END\r\n");
 
     free(pImage);
+    return NB_OK;
+}
+
+NBResult NEXT_TestExtractTemplate(void)
+{
+    NBResult res;
+    HNBBiometricsContext hContext;
+    NBBiometricsTemplateType templateType = NBBiometricsTemplateTypeIso;
+    NBBiometricsFingerPosition fingerPosition = NBBiometricsFingerPositionUnknown;
+    NBBiometricsScanParams scanParams;
+    NBBiometricsStatus bioStatus;
+    NBSizeType maxTemplateSize = 0;
+    NBSizeType templateSize = 0;
+    NBByte *pTemplate = NULL;
+
+    hContext = NEXT_BiometricsGetContext();
+    if (hContext == NULL)
+    {
+        return NB_ERROR_INVALID_OPERATION;
+    }
+
+    memset(&scanParams, 0, sizeof(scanParams));
+    scanParams.eScanFormat = (NBDeviceScanFormat)10;
+    scanParams.iTimeout = 30000;   /* 30 s */
+    scanParams.pPreviewProc = NULL;
+    scanParams.pParam = NULL;
+
+    res = NBBiometricsContextGetMaxTemplateSize(
+        hContext,
+        templateType,
+        &maxTemplateSize);
+
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG, "NBBiometricsContextGetMaxTemplateSize failed %d\r\n", (int)res);
+        return res;
+    }
+
+    log_printf(LOG_DBG, "Template max size=%lu\r\n", (unsigned long)maxTemplateSize);
+
+    pTemplate = (NBByte *)malloc(maxTemplateSize);
+    if (pTemplate == NULL)
+    {
+        return NB_ERROR_OUT_OF_MEMORY;
+    }
+
+    memset(pTemplate, 0, maxTemplateSize);
+
+    log_printf(LOG_DBG, "Place finger for extraction in 5 seconds...\r\n");
+    HAL_Delay(5000);
+
+    res = NBBiometricsContextExtractFromScan(
+        hContext,
+        templateType,
+        fingerPosition,
+        &scanParams,
+        0U,
+        pTemplate,
+        maxTemplateSize,
+        &bioStatus,
+        &templateSize);
+
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG,
+                   "NBBiometricsContextExtractFromScan failed %d, bioStatus=%d\r\n",
+                   (int)res,
+                   (int)bioStatus);
+        free(pTemplate);
+        return res;
+    }
+
+    log_printf(LOG_DBG,
+               "Extract OK, bioStatus=%d, templateSize=%lu\r\n",
+               (int)bioStatus,
+               (unsigned long)templateSize);
+
+    /* Bonus utile : lire la qualité */
+    {
+        NBInt quality = 0;
+        NBResult qres = NBBiometricsTemplateGetQuality(pTemplate, templateSize, &quality);
+        if (!NBFailed(qres))
+        {
+            log_printf(LOG_DBG, "Template quality=%d\r\n", (int)quality);
+        }
+        else
+        {
+            log_printf(LOG_DBG, "NBBiometricsTemplateGetQuality failed %d\r\n", (int)qres);
+        }
+    }
+
+    free(pTemplate);
     return NB_OK;
 }
