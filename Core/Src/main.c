@@ -159,6 +159,20 @@ int main(void)
 
   log_printf(LOG_DBG,"===================================================\r\n");
 
+  res = NEXT_ApplyCalibrationFromFlash();
+  if (NBFailed(res))
+  {
+      log_printf(LOG_DBG, "Flash calibration not available, generating...\r\n");
+
+      res = NEXT_TestCalibration();
+      if (NBFailed(res))
+      {
+          log_printf(LOG_DBG, "NEXT_TestCalibration failed %d\r\n", (int)res);
+      }
+  }
+
+  log_printf(LOG_DBG,"===================================================\r\n");
+
   res = NEXT_TestFirmwareVersion();
   if (NBFailed(res))
   {
@@ -179,14 +193,6 @@ int main(void)
   if (NBFailed(res))
   {
       log_printf(LOG_DBG, "NEXT_TestScanFormatInfo failed %d\r\n", (int)res);
-  }
-
-  log_printf(LOG_DBG,"===================================================\r\n");
-
-  res = NEXT_TestCalibration();
-  if (NBFailed(res))
-  {
-      log_printf(LOG_DBG, "NEXT_TestCalibration failed %d\r\n", (int)res);
   }
 
   log_printf(LOG_DBG,"===================================================\r\n");

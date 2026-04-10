@@ -189,6 +189,18 @@ NBResult NEXT_TestCalibration(void)
     }
 
     log_printf(LOG_DBG, "Calibration applied\r\n");
+
+    res = NEXT_Calibration_SaveToFlash(calibrationBuffer, (uint32_t)calibrationSize);
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG,
+                   "NEXT_Calibration_SaveToFlash failed %d\r\n",
+                   (int)res);
+        return res;
+    }
+
+    log_printf(LOG_DBG, "Calibration saved to flash\r\n");
+
     return NB_OK;
 }
 

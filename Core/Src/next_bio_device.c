@@ -107,3 +107,43 @@ NBBool NEXT_DeviceIsReady(void)
 {
     return (g_hDevice != NULL) ? NBTrue : NBFalse;
 }
+
+NBResult NEXT_ApplyCalibrationFromFlash(void)
+{
+    NBResult res;
+    HNBDevice hDevice;
+    const uint8_t *pData = NULL;
+    uint32_t size = 0;
+    NBDeviceCalibrationDataAddress addr;
+
+    hDevice = NEXT_DeviceGetHandle();
+    if (hDevice == NULL)
+    {
+        return NB_ERROR_INVALID_OPERATION;
+    }
+
+    res = NEXT_Calibration_LoadFromFlash(&pData, &size);
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG, "No valid calibration in flash\r\n");
+        return res;
+    }
+
+    addr.pCalibrationData = (NBByte *)pData;
+    addr.stCalibrationDataSize = size;
+
+    res = NBDeviceSetBlobParameter(
+        hDevice,
+        NB_DEVICE_BLOB_PARAMETER_CALIBRATION_DATA_ADDRESS,
+        (const NBByte *)&addr,
+        sizeof(addr));
+
+    if (NBFailed(res))
+    {
+        log_printf(LOG_DBG, "Apply calibration from flash failed %d\r\n", (int)res);
+        return res;
+    }
+
+    log_printf(LOG_DBG, "Calibration loaded from flash, size=%lu\r\n", (unsigned long)size);
+    return NB_OK;
+}
