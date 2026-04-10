@@ -36,6 +36,7 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define NEXT_DEBUG_PGM_
+#define NEXT_DEBUG_TEST_
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -179,7 +180,7 @@ int main(void)
   {
       log_printf(LOG_DBG, "NEXT_TestFirmwareVersion failed %d\r\n", (int)res);
   }
-
+#ifdef NEXT_DEBUG_TEST
   log_printf(LOG_DBG,"===================================================\r\n");
 
   res = NEXT_TestSupportedScanFormats();
@@ -195,6 +196,7 @@ int main(void)
   {
       log_printf(LOG_DBG, "NEXT_TestScanFormatInfo failed %d\r\n", (int)res);
   }
+#endif
 
 #if NEXT_DEBUG_PGM
   log_printf(LOG_DBG,"===================================================\r\n");
@@ -217,11 +219,13 @@ int main(void)
   }
   else
   {
-      res = NEXT_TestExtractTemplate();
+      log_printf(LOG_DBG, "===================================================\r\n");
+      res = NEXT_TestVerifyTwoScans();
       if (NBFailed(res))
       {
-          log_printf(LOG_DBG, "NEXT_TestExtractTemplate failed %d\r\n", (int)res);
+          log_printf(LOG_DBG, "NEXT_TestVerifyTwoScans failed %d\r\n", (int)res);
       }
+      log_printf(LOG_DBG, "===================================================\r\n");
   }
 
   log_printf(LOG_DBG,"===================================================\r\n");
