@@ -5,5 +5,5 @@
 
 USER_OBJS :=
 
-LIBS := -lid3Finger -lid3FingerExtract_xlmem -lNBDevicesLite_armel
+LIBS := -lid3FingerExtract_xlmem -lid3Finger -lNBDevicesLite_armel
 

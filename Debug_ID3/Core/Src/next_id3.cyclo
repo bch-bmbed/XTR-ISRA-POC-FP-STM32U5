@@ -1,1 +1,3 @@
-../Core/Src/next_id3.c:13:5:NEXT_ID3_SmokeTest	4
+../Core/Src/next_id3.c:24:13:NEXT_ID3_InvertImage	2
+../Core/Src/next_id3.c:33:5:NEXT_ID3_SmokeTest	4
+../Core/Src/next_id3.c:72:5:NEXT_ID3_ExtractFromNextCapture	19

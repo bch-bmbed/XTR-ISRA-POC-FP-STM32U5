@@ -6,9 +6,29 @@
  */
 
 #include "next_id3.h"
+
 #include "logger_xtr.h"
+#include "next_bio_device.h"
+
+#include "NBDevice.h"
+#include "NBErrors.h"
+
 #include <string.h>
 #include <stdlib.h>
+
+#define NEXT_ID3_IMAGE_WIDTH   300U
+#define NEXT_ID3_IMAGE_HEIGHT  400U
+#define NEXT_ID3_IMAGE_SIZE    (NEXT_ID3_IMAGE_WIDTH * NEXT_ID3_IMAGE_HEIGHT)
+#define NEXT_ID3_IMAGE_DPI     385U
+
+static void NEXT_ID3_InvertImage(uint8_t *pImage, uint32_t size)
+{
+    uint32_t i;
+    for (i = 0; i < size; i++)
+    {
+        pImage[i] = (uint8_t)(255U - pImage[i]);
+    }
+}
 
 int NEXT_ID3_SmokeTest(void)
 {
@@ -49,150 +69,222 @@ int NEXT_ID3_SmokeTest(void)
     return result;
 }
 
-//int NEXT_ID3_ExtractTemplateFromImage(const uint8_t *pImage, NEXT_ID3_Template *pTemplate)
-//{
-//    int result;
-//    int extractorBufferSize;
-//    uint8_t *pExtractorBuffer = NULL;
-//    uint8_t *pWorkingImage = NULL;
-//    ID3FINGER_EXTRACT hExtract = NULL;
-//    unsigned char imageQuality = 0;
-//
-//    if ((pImage == NULL) || (pTemplate == NULL))
-//    {
-//        return ID3_E_INVALID_ARGUMENT;
-//    }
-//
-//    memset(pTemplate, 0, sizeof(*pTemplate));
-//
-//    extractorBufferSize = sizeOf_ID3FINGER_EXTRACT(NEXT_ID3_IMAGE_WIDTH, NEXT_ID3_IMAGE_HEIGHT);
-//    if (extractorBufferSize <= 0)
-//    {
-//        return ID3_E_INVALID_ARGUMENT;
-//    }
-//
-//    pExtractorBuffer = (uint8_t *)malloc((size_t)extractorBufferSize);
-//    if (pExtractorBuffer == NULL)
-//    {
-//        return ID3_E_OUT_OF_MEMORY;
-//    }
-//
-//    /* Important: le SDK id3 indique que l'image d'entrée est écrasée */
-//    pWorkingImage = (uint8_t *)malloc((size_t)(NEXT_ID3_IMAGE_WIDTH * NEXT_ID3_IMAGE_HEIGHT));
-//    if (pWorkingImage == NULL)
-//    {
-//        free(pExtractorBuffer);
-//        return ID3_E_OUT_OF_MEMORY;
-//    }
-//
-//    memcpy(pWorkingImage,
-//           pImage,
-//           (size_t)(NEXT_ID3_IMAGE_WIDTH * NEXT_ID3_IMAGE_HEIGHT));
-//
-//    result = id3FingerTemplate_Initialize(
-//        &pTemplate->hTemplate,
-//        pTemplate->buffer,
-//        sizeof(pTemplate->buffer));
-//    if (result != ID3_SUCCESS)
-//    {
-//        free(pWorkingImage);
-//        free(pExtractorBuffer);
-//        return result;
-//    }
-//
-//    result = id3FingerExtract_Initialize(
-//        &hExtract,
-//        NEXT_ID3_IMAGE_WIDTH,
-//        NEXT_ID3_IMAGE_HEIGHT,
-//        pExtractorBuffer,
-//        extractorBufferSize);
-//    if (result != ID3_SUCCESS)
-//    {
-//        free(pWorkingImage);
-//        free(pExtractorBuffer);
-//        return result;
-//    }
-//
-//    result = id3FingerExtract_CreateTemplate(
-//        hExtract,
-//        pWorkingImage,
-//        pTemplate->hTemplate,
-//        FingerExtractMode_HighSpeed370DPI,
-//        NEXT_ID3_IMAGE_DPI);
-//    if (result != ID3_SUCCESS)
-//    {
-//        free(pWorkingImage);
-//        free(pExtractorBuffer);
-//        return result;
-//    }
-//
-//    result = id3FingerTemplate_GetImageQuality(pTemplate->hTemplate, &imageQuality);
-//    if (result == ID3_SUCCESS)
-//    {
-//        log_printf(LOG_DBG, "ID3 template image quality=%u\r\n", (unsigned int)imageQuality);
-//    }
-//
-//    pTemplate->valid = 1U;
-//
-//    free(pWorkingImage);
-//    free(pExtractorBuffer);
-//
-//    return ID3_SUCCESS;
-//}
-//
-//int NEXT_ID3_MatchTemplates(const NEXT_ID3_Template *pRef,
-//                            const NEXT_ID3_Template *pProbe,
-//                            id3FingerMatchResult *pResult)
-//{
-//    int result;
-//    int matcherBufferSize;
-//    uint8_t *pMatcherBuffer = NULL;
-//    ID3FINGER_MATCH hMatcher = NULL;
-//
-//    if ((pRef == NULL) || (pProbe == NULL) || (pResult == NULL))
-//    {
-//        return ID3_E_INVALID_ARGUMENT;
-//    }
-//
-//    if ((pRef->valid == 0U) || (pProbe->valid == 0U))
-//    {
-//        return ID3_E_INVALID_ARGUMENT;
-//    }
-//
-//    memset(pResult, 0, sizeof(*pResult));
-//
-//    matcherBufferSize = sizeOf_ID3FINGER_MATCH();
-//    if (matcherBufferSize <= 0)
-//    {
-//        return ID3_E_INVALID_ARGUMENT;
-//    }
-//
-//    pMatcherBuffer = (uint8_t *)malloc((size_t)matcherBufferSize);
-//    if (pMatcherBuffer == NULL)
-//    {
-//        return ID3_E_OUT_OF_MEMORY;
-//    }
-//
-//    result = id3FingerMatch_Initialize(&hMatcher, pMatcherBuffer, matcherBufferSize);
-//    if (result != ID3_SUCCESS)
-//    {
-//        free(pMatcherBuffer);
-//        return result;
-//    }
-//
-//    result = id3FingerMatch_SetThreshold(hMatcher, FingerMatchThreshold_MediumSecurity);
-//    if (result != ID3_SUCCESS)
-//    {
-//        free(pMatcherBuffer);
-//        return result;
-//    }
-//
-//    result = id3FingerMatch_CompareTemplates(
-//        hMatcher,
-//        pRef->hTemplate,
-//        pProbe->hTemplate,
-//        pResult);
-//
-//    free(pMatcherBuffer);
-//    return result;
-//}
+int NEXT_ID3_ExtractFromNextCapture(void)
+{
+    NBResult nbRes;
+    HNBDevice hDevice;
+    NBDeviceScanFormatInfo info;
+    NBDeviceScanStatus scanStatus = 0;
+
+    uint8_t *pImage = NULL;
+    uint8_t *pWorkingImage = NULL;
+    uint8_t *pTemplateBuffer = NULL;
+    uint8_t *pExtractBuffer = NULL;
+
+    ID3FINGER_TEMPLATE hTemplate = NULL;
+    ID3FINGER_EXTRACT hExtract = NULL;
+
+    int id3Res;
+    int templateObjSize;
+    int extractObjSize;
+    unsigned char imageQuality = 0;
+
+    hDevice = NEXT_DeviceGetHandle();
+    if (hDevice == NULL)
+    {
+        log_printf(LOG_DBG, "NEXT_DeviceGetHandle returned NULL\r\n");
+        return -100;
+    }
+
+    memset(&info, 0, sizeof(info));
+    nbRes = NBDeviceGetScanFormatInfo(hDevice, (NBDeviceScanFormat)10, &info);
+    if (NBFailed(nbRes))
+    {
+        log_printf(LOG_DBG, "NBDeviceGetScanFormatInfo(fmt=10) failed %d\r\n", (int)nbRes);
+        return (int)nbRes;
+    }
+
+    log_printf(LOG_DBG,
+               "ID3 capture fmt=10 width=%u height=%u hDpi=%u vDpi=%u bytes=%lu\r\n",
+               (unsigned int)info.uiWidth,
+               (unsigned int)info.uiHeight,
+               (unsigned int)info.uiHorizontalResolution,
+               (unsigned int)info.uiVerticalResolution,
+               (unsigned long)(info.uiWidth * info.uiHeight));
+
+    if ((info.uiWidth != NEXT_ID3_IMAGE_WIDTH) || (info.uiHeight != NEXT_ID3_IMAGE_HEIGHT))
+    {
+        log_printf(LOG_DBG, "Unexpected image geometry for ID3 path\r\n");
+        return -101;
+    }
+
+    pImage = (uint8_t *)malloc(NEXT_ID3_IMAGE_SIZE);
+    pWorkingImage = (uint8_t *)malloc(NEXT_ID3_IMAGE_SIZE);
+
+    if ((pImage == NULL) || (pWorkingImage == NULL))
+    {
+        log_printf(LOG_DBG, "Image malloc failed\r\n");
+        free(pImage);
+        free(pWorkingImage);
+        return -102;
+    }
+
+    memset(pImage, 0, NEXT_ID3_IMAGE_SIZE);
+    memset(pWorkingImage, 0, NEXT_ID3_IMAGE_SIZE);
+
+    log_printf(LOG_DBG, "Place finger for ID3 extraction in 5 seconds...\r\n");
+    HAL_Delay(5000);
+
+    nbRes = NBDeviceScan(
+        hDevice,
+        (NBDeviceScanFormat)10,
+        pImage,
+        NEXT_ID3_IMAGE_SIZE,
+        NB_DEVICE_SCAN_SKIP_FINGER_DETECTION_FLAG,
+        &scanStatus);
+
+    log_printf(LOG_DBG, "NBDeviceScan -> %d status=%d\r\n", (int)nbRes, (int)scanStatus);
+    if (NBFailed(nbRes))
+    {
+        free(pImage);
+        free(pWorkingImage);
+        return (int)nbRes;
+    }
+
+    memcpy(pWorkingImage, pImage, NEXT_ID3_IMAGE_SIZE);
+
+    templateObjSize = sizeOf_ID3FINGER_TEMPLATE();
+    extractObjSize = sizeOf_ID3FINGER_EXTRACT((int)NEXT_ID3_IMAGE_WIDTH, (int)NEXT_ID3_IMAGE_HEIGHT);
+
+    log_printf(LOG_DBG,
+               "ID3 object sizes: template=%d extract=%d\r\n",
+               templateObjSize,
+               extractObjSize);
+
+    if ((templateObjSize <= 0) || (extractObjSize <= 0))
+    {
+        free(pImage);
+        free(pWorkingImage);
+        return -103;
+    }
+
+    pTemplateBuffer = (uint8_t *)malloc((size_t)templateObjSize);
+    pExtractBuffer = (uint8_t *)malloc((size_t)extractObjSize);
+
+    if ((pTemplateBuffer == NULL) || (pExtractBuffer == NULL))
+    {
+        log_printf(LOG_DBG, "ID3 object malloc failed\r\n");
+        free(pImage);
+        free(pWorkingImage);
+        free(pTemplateBuffer);
+        free(pExtractBuffer);
+        return -104;
+    }
+
+    memset(pTemplateBuffer, 0, (size_t)templateObjSize);
+    memset(pExtractBuffer, 0, (size_t)extractObjSize);
+
+    id3Res = id3FingerTemplate_Initialize(&hTemplate, pTemplateBuffer, templateObjSize);
+    log_printf(LOG_DBG, "id3FingerTemplate_Initialize -> %d\r\n", id3Res);
+    if (id3Res != ID3_SUCCESS)
+    {
+        free(pImage);
+        free(pWorkingImage);
+        free(pTemplateBuffer);
+        free(pExtractBuffer);
+        return id3Res;
+    }
+
+    id3Res = id3FingerExtract_Initialize(
+        &hExtract,
+        (int)NEXT_ID3_IMAGE_WIDTH,
+        (int)NEXT_ID3_IMAGE_HEIGHT,
+        pExtractBuffer,
+        extractObjSize);
+    log_printf(LOG_DBG, "id3FingerExtract_Initialize -> %d\r\n", id3Res);
+    if (id3Res != ID3_SUCCESS)
+    {
+        free(pImage);
+        free(pWorkingImage);
+        free(pTemplateBuffer);
+        free(pExtractBuffer);
+        return id3Res;
+    }
+
+    // LOG INFO
+
+    {
+        uint32_t i;
+        uint32_t sum = 0;
+        uint8_t minv = 255;
+        uint8_t maxv = 0;
+
+        for (i = 0; i < NEXT_ID3_IMAGE_SIZE; i++)
+        {
+            uint8_t v = pWorkingImage[i];
+            sum += v;
+            if (v < minv) minv = v;
+            if (v > maxv) maxv = v;
+        }
+
+        log_printf(LOG_DBG,
+                   "Image stats: min=%u max=%u mean=%lu first8=%u,%u,%u,%u,%u,%u,%u,%u\r\n",
+                   (unsigned int)minv,
+                   (unsigned int)maxv,
+                   (unsigned long)(sum / NEXT_ID3_IMAGE_SIZE),
+                   pWorkingImage[0], pWorkingImage[1], pWorkingImage[2], pWorkingImage[3],
+                   pWorkingImage[4], pWorkingImage[5], pWorkingImage[6], pWorkingImage[7]);
+    }
+
+    // END LOG INFO
+
+    id3Res = id3FingerExtract_CreateTemplate(
+        hExtract,
+        pWorkingImage,
+        hTemplate,
+		FingerExtractMode_LowSpeed370DPI,
+        NEXT_ID3_IMAGE_DPI);
+    log_printf(LOG_DBG, "id3FingerExtract_CreateTemplate(normal) -> %d\r\n", id3Res);
+
+    if (id3Res != ID3_SUCCESS)
+    {
+        memcpy(pWorkingImage, pImage, NEXT_ID3_IMAGE_SIZE);
+        NEXT_ID3_InvertImage(pWorkingImage, NEXT_ID3_IMAGE_SIZE);
+
+        id3Res = id3FingerExtract_CreateTemplate(
+            hExtract,
+            pWorkingImage,
+            hTemplate,
+			FingerExtractMode_LowSpeed370DPI,
+            NEXT_ID3_IMAGE_DPI);
+        log_printf(LOG_DBG, "id3FingerExtract_CreateTemplate(inverted) -> %d\r\n", id3Res);
+    }
+
+    if (id3Res != ID3_SUCCESS)
+    {
+        log_printf(LOG_DBG, "ID3 extraction failed after both attempts\r\n");
+
+        free(pImage);
+        free(pWorkingImage);
+        free(pTemplateBuffer);
+        free(pExtractBuffer);
+
+        return id3Res;
+    }
+
+    id3Res = id3FingerTemplate_GetImageQuality(hTemplate, &imageQuality);
+    log_printf(LOG_DBG,
+               "id3FingerTemplate_GetImageQuality -> %d quality=%u\r\n",
+               id3Res,
+               (unsigned int)imageQuality);
+
+    log_printf(LOG_DBG, "ID3 extract from Next capture OK\r\n");
+
+    free(pImage);
+    free(pWorkingImage);
+    free(pTemplateBuffer);
+    free(pExtractBuffer);
+
+    return ID3_SUCCESS;
+}
+

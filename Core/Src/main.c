@@ -238,10 +238,17 @@ int main(void)
 #endif
 
 #ifdef NEXT_ID3_TEST
+//  log_printf(LOG_DBG, "===================================================\r\n");
+//  if (NEXT_ID3_SmokeTest() != ID3_SUCCESS)
+//  {
+//      log_printf(LOG_DBG, "NEXT_ID3_SmokeTest failed\r\n");
+//  }
+//  log_printf(LOG_DBG, "===================================================\r\n");
+
   log_printf(LOG_DBG, "===================================================\r\n");
-  if (NEXT_ID3_SmokeTest() != ID3_SUCCESS)
+  if (NEXT_ID3_ExtractFromNextCapture() != ID3_SUCCESS)
   {
-      log_printf(LOG_DBG, "NEXT_ID3_SmokeTest failed\r\n");
+      log_printf(LOG_DBG, "NEXT_ID3_ExtractFromNextCapture failed\r\n");
   }
   log_printf(LOG_DBG, "===================================================\r\n");
 #endif
