@@ -374,9 +374,11 @@ NBResult NEXT_TestExtractTemplate(void)
     NBResult res;
     HNBBiometricsContext hContext;
     NBBiometricsTemplateType templateType = NBBiometricsTemplateTypeIso;
-    NBBiometricsFingerPosition fingerPosition = NBBiometricsFingerPositionUnknown;
+    NBBiometricsFingerPosition fingerPosition = NBBiometricsFingerPositionRightThumb;
     NBBiometricsScanParams scanParams;
-    NBBiometricsStatus bioStatus;
+    NBUInt uiFlags = NB_BIOMETRICS_SCAN_USE_SNAPSHOT_FLAG |
+                     NB_BIOMETRICS_SCAN_SKIP_FINGER_NOT_REMOVED_STATUS_FLAG;
+    NBBiometricsStatus bioStatus = NBBiometricsStatusNone;
     NBSizeType maxTemplateSize = 0;
     NBSizeType templateSize = 0;
     NBByte *pTemplate = NULL;
@@ -422,7 +424,7 @@ NBResult NEXT_TestExtractTemplate(void)
         templateType,
         fingerPosition,
         &scanParams,
-        0U,
+		uiFlags,
         pTemplate,
         maxTemplateSize,
         &bioStatus,
