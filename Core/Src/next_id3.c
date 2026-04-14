@@ -19,7 +19,6 @@
 #define NEXT_ID3_IMAGE_WIDTH   300U
 #define NEXT_ID3_IMAGE_HEIGHT  400U
 #define NEXT_ID3_IMAGE_SIZE    (NEXT_ID3_IMAGE_WIDTH * NEXT_ID3_IMAGE_HEIGHT)
-#define NEXT_ID3_IMAGE_DPI     385U
 
 static void NEXT_ID3_InvertImage(uint8_t *pImage, uint32_t size)
 {
@@ -27,6 +26,29 @@ static void NEXT_ID3_InvertImage(uint8_t *pImage, uint32_t size)
     for (i = 0; i < size; i++)
     {
         pImage[i] = (uint8_t)(255U - pImage[i]);
+    }
+}
+
+typedef struct
+{
+    id3FingerExtractMode mode;
+    const char *name;
+} NEXT_ID3_ModeEntry;
+
+static unsigned short NEXT_ID3_ModeToDpi(id3FingerExtractMode mode)
+{
+    switch (mode)
+    {
+    case FingerExtractMode_LowSpeed370DPI:
+    case FingerExtractMode_HighSpeed370DPI:
+    case FingerExtractMode_SmallSensor370DPI:
+        return 370;
+
+    case FingerExtractMode_LowSpeed:
+    case FingerExtractMode_HighSpeed:
+    case FingerExtractMode_SmallSensor:
+    default:
+        return 500;
     }
 }
 
@@ -238,31 +260,73 @@ int NEXT_ID3_ExtractFromNextCapture(void)
 
     // END LOG INFO
 
-    id3Res = id3FingerExtract_CreateTemplate(
-        hExtract,
-        pWorkingImage,
-        hTemplate,
-		FingerExtractMode_LowSpeed370DPI,
-        NEXT_ID3_IMAGE_DPI);
-    log_printf(LOG_DBG, "id3FingerExtract_CreateTemplate(normal) -> %d\r\n", id3Res);
-
-    if (id3Res != ID3_SUCCESS)
+    static const NEXT_ID3_ModeEntry kModes[] =
     {
+        { FingerExtractMode_SmallSensor370DPI, "SmallSensor370DPI" },
+        { FingerExtractMode_LowSpeed370DPI,    "LowSpeed370DPI"    },
+        { FingerExtractMode_HighSpeed370DPI,   "HighSpeed370DPI"   },
+        { FingerExtractMode_SmallSensor,       "SmallSensor500DPI" },
+        { FingerExtractMode_LowSpeed,          "LowSpeed500DPI"    },
+        { FingerExtractMode_HighSpeed,         "HighSpeed500DPI"   },
+    };
+
+    uint32_t m;
+    int extractOk = 0;
+
+    for (m = 0; m < (sizeof(kModes) / sizeof(kModes[0])); m++)
+    {
+        unsigned short id3Dpi = NEXT_ID3_ModeToDpi(kModes[m].mode);
+
         memcpy(pWorkingImage, pImage, NEXT_ID3_IMAGE_SIZE);
-        NEXT_ID3_InvertImage(pWorkingImage, NEXT_ID3_IMAGE_SIZE);
+        log_printf(LOG_DBG, "Trying %s normal dpi=%u\r\n",
+                   kModes[m].name,
+                   (unsigned int)id3Dpi);
 
         id3Res = id3FingerExtract_CreateTemplate(
             hExtract,
             pWorkingImage,
             hTemplate,
-			FingerExtractMode_LowSpeed370DPI,
-            NEXT_ID3_IMAGE_DPI);
-        log_printf(LOG_DBG, "id3FingerExtract_CreateTemplate(inverted) -> %d\r\n", id3Res);
+            kModes[m].mode,
+            id3Dpi);
+
+        log_printf(LOG_DBG, "CreateTemplate(%s normal) -> %d\r\n",
+                   kModes[m].name,
+                   id3Res);
+
+        if (id3Res == ID3_SUCCESS)
+        {
+            extractOk = 1;
+            break;
+        }
+
+        memcpy(pWorkingImage, pImage, NEXT_ID3_IMAGE_SIZE);
+        NEXT_ID3_InvertImage(pWorkingImage, NEXT_ID3_IMAGE_SIZE);
+
+        log_printf(LOG_DBG, "Trying %s inverted dpi=%u\r\n",
+                   kModes[m].name,
+                   (unsigned int)id3Dpi);
+
+        id3Res = id3FingerExtract_CreateTemplate(
+            hExtract,
+            pWorkingImage,
+            hTemplate,
+            kModes[m].mode,
+            id3Dpi);
+
+        log_printf(LOG_DBG, "CreateTemplate(%s inverted) -> %d\r\n",
+                   kModes[m].name,
+                   id3Res);
+
+        if (id3Res == ID3_SUCCESS)
+        {
+            extractOk = 1;
+            break;
+        }
     }
 
-    if (id3Res != ID3_SUCCESS)
+    if (!extractOk)
     {
-        log_printf(LOG_DBG, "ID3 extraction failed after both attempts\r\n");
+        log_printf(LOG_DBG, "ID3 extraction failed for all modes\r\n");
 
         free(pImage);
         free(pWorkingImage);
