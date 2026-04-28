@@ -20,6 +20,10 @@
 #define NEXT_ID3_IMAGE_HEIGHT  400U
 #define NEXT_ID3_IMAGE_SIZE    (NEXT_ID3_IMAGE_WIDTH * NEXT_ID3_IMAGE_HEIGHT)
 
+#define NEXT_ID3_MODE          FingerExtractMode_SmallSensor370DPI
+#define NEXT_ID3_MODE_NAME     "SmallSensor370DPI"
+#define NEXT_ID3_DPI           370U
+
 static void NEXT_ID3_InvertImage(uint8_t *pImage, uint32_t size)
 {
     uint32_t i;
@@ -99,7 +103,6 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     NBDeviceScanStatus scanStatus = 0;
 
     uint8_t *pImage = NULL;
-    uint8_t *pWorkingImage = NULL;
     uint8_t *pTemplateBuffer = NULL;
     uint8_t *pExtractBuffer = NULL;
 
@@ -110,6 +113,11 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     int templateObjSize;
     int extractObjSize;
     unsigned char imageQuality = 0;
+
+    uint32_t i;
+    uint32_t sum = 0;
+    uint8_t minv = 255;
+    uint8_t maxv = 0;
 
     hDevice = NEXT_DeviceGetHandle();
     if (hDevice == NULL)
@@ -141,18 +149,13 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     }
 
     pImage = (uint8_t *)malloc(NEXT_ID3_IMAGE_SIZE);
-    pWorkingImage = (uint8_t *)malloc(NEXT_ID3_IMAGE_SIZE);
-
-    if ((pImage == NULL) || (pWorkingImage == NULL))
+    if (pImage == NULL)
     {
         log_printf(LOG_DBG, "Image malloc failed\r\n");
-        free(pImage);
-        free(pWorkingImage);
         return -102;
     }
 
     memset(pImage, 0, NEXT_ID3_IMAGE_SIZE);
-    memset(pWorkingImage, 0, NEXT_ID3_IMAGE_SIZE);
 
     log_printf(LOG_DBG, "Place finger for ID3 extraction in 5 seconds...\r\n");
     HAL_Delay(5000);
@@ -169,11 +172,24 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     if (NBFailed(nbRes))
     {
         free(pImage);
-        free(pWorkingImage);
         return (int)nbRes;
     }
 
-    memcpy(pWorkingImage, pImage, NEXT_ID3_IMAGE_SIZE);
+    for (i = 0; i < NEXT_ID3_IMAGE_SIZE; i++)
+    {
+        uint8_t v = pImage[i];
+        sum += v;
+        if (v < minv) minv = v;
+        if (v > maxv) maxv = v;
+    }
+
+    log_printf(LOG_DBG,
+               "Image stats: min=%u max=%u mean=%lu first8=%u,%u,%u,%u,%u,%u,%u,%u\r\n",
+               (unsigned int)minv,
+               (unsigned int)maxv,
+               (unsigned long)(sum / NEXT_ID3_IMAGE_SIZE),
+               pImage[0], pImage[1], pImage[2], pImage[3],
+               pImage[4], pImage[5], pImage[6], pImage[7]);
 
     templateObjSize = sizeOf_ID3FINGER_TEMPLATE();
     extractObjSize = sizeOf_ID3FINGER_EXTRACT((int)NEXT_ID3_IMAGE_WIDTH, (int)NEXT_ID3_IMAGE_HEIGHT);
@@ -186,7 +202,6 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     if ((templateObjSize <= 0) || (extractObjSize <= 0))
     {
         free(pImage);
-        free(pWorkingImage);
         return -103;
     }
 
@@ -197,7 +212,6 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     {
         log_printf(LOG_DBG, "ID3 object malloc failed\r\n");
         free(pImage);
-        free(pWorkingImage);
         free(pTemplateBuffer);
         free(pExtractBuffer);
         return -104;
@@ -211,7 +225,6 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     if (id3Res != ID3_SUCCESS)
     {
         free(pImage);
-        free(pWorkingImage);
         free(pTemplateBuffer);
         free(pExtractBuffer);
         return id3Res;
@@ -227,112 +240,31 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     if (id3Res != ID3_SUCCESS)
     {
         free(pImage);
-        free(pWorkingImage);
         free(pTemplateBuffer);
         free(pExtractBuffer);
         return id3Res;
     }
 
-    // LOG INFO
+    log_printf(LOG_DBG, "Trying %s dpi=%u\r\n",
+               NEXT_ID3_MODE_NAME,
+               (unsigned int)NEXT_ID3_DPI);
 
+    id3Res = id3FingerExtract_CreateTemplate(
+        hExtract,
+        pImage,
+        hTemplate,
+        NEXT_ID3_MODE,
+        NEXT_ID3_DPI);
+
+    log_printf(LOG_DBG, "CreateTemplate(%s) -> %d\r\n",
+               NEXT_ID3_MODE_NAME,
+               id3Res);
+
+    if (id3Res != ID3_SUCCESS)
     {
-        uint32_t i;
-        uint32_t sum = 0;
-        uint8_t minv = 255;
-        uint8_t maxv = 0;
-
-        for (i = 0; i < NEXT_ID3_IMAGE_SIZE; i++)
-        {
-            uint8_t v = pWorkingImage[i];
-            sum += v;
-            if (v < minv) minv = v;
-            if (v > maxv) maxv = v;
-        }
-
-        log_printf(LOG_DBG,
-                   "Image stats: min=%u max=%u mean=%lu first8=%u,%u,%u,%u,%u,%u,%u,%u\r\n",
-                   (unsigned int)minv,
-                   (unsigned int)maxv,
-                   (unsigned long)(sum / NEXT_ID3_IMAGE_SIZE),
-                   pWorkingImage[0], pWorkingImage[1], pWorkingImage[2], pWorkingImage[3],
-                   pWorkingImage[4], pWorkingImage[5], pWorkingImage[6], pWorkingImage[7]);
-    }
-
-    // END LOG INFO
-
-    static const NEXT_ID3_ModeEntry kModes[] =
-    {
-        { FingerExtractMode_SmallSensor370DPI, "SmallSensor370DPI" },
-        { FingerExtractMode_LowSpeed370DPI,    "LowSpeed370DPI"    },
-        { FingerExtractMode_HighSpeed370DPI,   "HighSpeed370DPI"   },
-        { FingerExtractMode_SmallSensor,       "SmallSensor500DPI" },
-        { FingerExtractMode_LowSpeed,          "LowSpeed500DPI"    },
-        { FingerExtractMode_HighSpeed,         "HighSpeed500DPI"   },
-    };
-
-    uint32_t m;
-    int extractOk = 0;
-
-    for (m = 0; m < (sizeof(kModes) / sizeof(kModes[0])); m++)
-    {
-        unsigned short id3Dpi = NEXT_ID3_ModeToDpi(kModes[m].mode);
-
-        memcpy(pWorkingImage, pImage, NEXT_ID3_IMAGE_SIZE);
-        log_printf(LOG_DBG, "Trying %s normal dpi=%u\r\n",
-                   kModes[m].name,
-                   (unsigned int)id3Dpi);
-
-        id3Res = id3FingerExtract_CreateTemplate(
-            hExtract,
-            pWorkingImage,
-            hTemplate,
-            kModes[m].mode,
-            id3Dpi);
-
-        log_printf(LOG_DBG, "CreateTemplate(%s normal) -> %d\r\n",
-                   kModes[m].name,
-                   id3Res);
-
-        if (id3Res == ID3_SUCCESS)
-        {
-            extractOk = 1;
-            break;
-        }
-
-        memcpy(pWorkingImage, pImage, NEXT_ID3_IMAGE_SIZE);
-        NEXT_ID3_InvertImage(pWorkingImage, NEXT_ID3_IMAGE_SIZE);
-
-        log_printf(LOG_DBG, "Trying %s inverted dpi=%u\r\n",
-                   kModes[m].name,
-                   (unsigned int)id3Dpi);
-
-        id3Res = id3FingerExtract_CreateTemplate(
-            hExtract,
-            pWorkingImage,
-            hTemplate,
-            kModes[m].mode,
-            id3Dpi);
-
-        log_printf(LOG_DBG, "CreateTemplate(%s inverted) -> %d\r\n",
-                   kModes[m].name,
-                   id3Res);
-
-        if (id3Res == ID3_SUCCESS)
-        {
-            extractOk = 1;
-            break;
-        }
-    }
-
-    if (!extractOk)
-    {
-        log_printf(LOG_DBG, "ID3 extraction failed for all modes\r\n");
-
         free(pImage);
-        free(pWorkingImage);
         free(pTemplateBuffer);
         free(pExtractBuffer);
-
         return id3Res;
     }
 
@@ -345,7 +277,6 @@ int NEXT_ID3_ExtractFromNextCapture(void)
     log_printf(LOG_DBG, "ID3 extract from Next capture OK\r\n");
 
     free(pImage);
-    free(pWorkingImage);
     free(pTemplateBuffer);
     free(pExtractBuffer);
 
