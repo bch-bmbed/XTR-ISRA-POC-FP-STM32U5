@@ -1,4 +1,12 @@
-../Core/Src/next_id3.c:27:13:NEXT_ID3_InvertImage	2
-../Core/Src/next_id3.c:42:23:NEXT_ID3_ModeToDpi	4
-../Core/Src/next_id3.c:59:5:NEXT_ID3_SmokeTest	4
-../Core/Src/next_id3.c:98:5:NEXT_ID3_ExtractFromNextCapture	17
+../Core/Src/next_id3.c:36:17:NEXT_ID3_GetFingerDetect	1
+../Core/Src/next_id3.c:46:12:NEXT_ID3_WaitFingerRemoved	4
+../Core/Src/next_id3.c:71:12:NEXT_ID3_WaitFingerStable	6
+../Core/Src/next_id3.c:216:13:NEXT_ID3_PrepareVariant	14
+../Core/Src/next_id3.c:278:12:NEXT_ID3_EvaluateImageBestQuality	15
+../Core/Src/next_id3.c:389:5:NEXT_ID3_SmokeTest	4
+../Core/Src/next_id3.c:428:12:NEXT_ID3_CaptureTemplate	19
+../Core/Src/next_id3.c:617:5:NEXT_ID3_TestTwoTemplates	6
+../Core/Src/next_id3.c:680:5:NEXT_ID3_BenchmarkImageVariants	16
+../Core/Src/next_id3.c:863:5:NEXT_ID3_BenchmarkCaptureSettings	10
+../Core/Src/next_id3.c:987:5:NEXT_ID3_BenchmarkScanEx	11
+../Core/Src/next_id3.c:1118:5:NEXT_ID3_BenchmarkFingerDetectCapture	11

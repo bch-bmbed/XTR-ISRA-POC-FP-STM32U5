@@ -245,12 +245,37 @@ int main(void)
 //  }
 //  log_printf(LOG_DBG, "===================================================\r\n");
 
-  log_printf(LOG_DBG, "===================================================\r\n");
-  if (NEXT_ID3_ExtractFromNextCapture() != ID3_SUCCESS)
-  {
-      log_printf(LOG_DBG, "NEXT_ID3_ExtractFromNextCapture failed\r\n");
-  }
-  log_printf(LOG_DBG, "===================================================\r\n");
+//  log_printf(LOG_DBG, "===================================================\r\n");
+//  if (NEXT_ID3_TestTwoTemplates() != ID3_SUCCESS)
+//  {
+//      log_printf(LOG_DBG, "NEXT_ID3_TestTwoTemplates failed\r\n");
+//  }
+//  log_printf(LOG_DBG, "===================================================\r\n");
+
+//  log_printf(LOG_DBG, "===================================================\r\n");
+//  if (NEXT_ID3_BenchmarkCaptureSettings() != ID3_SUCCESS)
+//  {
+//      log_printf(LOG_DBG, "NEXT_ID3_BenchmarkCaptureSettings failed\r\n");
+//  }
+//  log_printf(LOG_DBG, "===================================================\r\n");
+
+//  log_printf(LOG_DBG, "====================================\r\n");
+//  if(NEXT_ID3_BenchmarkScanEx() != ID3_SUCCESS)
+//  {
+//	  log_printf(LOG_DBG, "NEXT_ID3_BenchmarkScanEx failed\r\n");
+//  }
+//  log_printf(LOG_DBG, "====================================\r\n");
+
+//  log_printf(LOG_DBG, "===================================================\r\n");
+//  if (NEXT_ID3_BenchmarkImageVariants() != ID3_SUCCESS)
+//  {
+//      log_printf(LOG_DBG, "NEXT_ID3_BenchmarkImageVariants failed\r\n");
+//  }
+//  log_printf(LOG_DBG, "===================================================\r\n");
+
+  log_printf(LOG_DBG, "====================================\r\n");
+  NEXT_ID3_BenchmarkFingerDetectCapture();
+  log_printf(LOG_DBG, "====================================\r\n");
 #endif
 
   while (1)
