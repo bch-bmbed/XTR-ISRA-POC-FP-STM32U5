@@ -109,6 +109,44 @@ static int NEXT_ID3_WaitFingerStable(HNBDevice hDevice,
     return -1;
 }
 
+static void NEXT_ID3_DumpPgmAscii(const char *tag,
+                                  const uint8_t *pImage,
+                                  uint32_t width,
+                                  uint32_t height,
+                                  int quality,
+                                  const char *variant)
+{
+    uint32_t imageSize = width * height;
+
+    if ((pImage == NULL) || (tag == NULL) || (variant == NULL))
+    {
+        return;
+    }
+
+    log_printf(LOG_DBG, "PGM BEGIN %s quality=%d variant=%s\r\n",
+               tag,
+               quality,
+               variant);
+
+    log_printf(LOG_DBG, "P2\r\n");
+    log_printf(LOG_DBG, "%lu %lu\r\n",
+               (unsigned long)width,
+               (unsigned long)height);
+    log_printf(LOG_DBG, "255\r\n");
+
+    for (uint32_t i = 0; i < imageSize; i++)
+    {
+        log_printf(LOG_DBG, "%u ", (unsigned int)pImage[i]);
+
+        if (((i + 1U) % width) == 0U)
+        {
+            log_printf(LOG_DBG, "\r\n");
+        }
+    }
+
+    log_printf(LOG_DBG, "PGM END %s\r\n", tag);
+}
+
 //static void NEXT_ID3_InvertImage(uint8_t *pImage, uint32_t size)
 //{
 //    uint32_t i;
@@ -1217,6 +1255,11 @@ int NEXT_ID3_BenchmarkFingerDetectCapture(void)
                    (unsigned long)(sum / NEXT_ID3_IMAGE_SIZE),
                    bestVariant,
                    bestQuality);
+
+        if (bestQuality > 75)
+        {
+            NEXT_ID3_DumpPgmAscii("HIGH", pImage, NEXT_ID3_IMAGE_WIDTH, NEXT_ID3_IMAGE_HEIGHT, bestQuality, bestVariant);
+        }
     }
 
     free(pImage);
